@@ -11,8 +11,8 @@ from vec2_math import (
     vrotate,
     get_signed_angle,
     qrotate,
-    get_line_xsect,
-    get_seg_xsect,
+    get_line_intersection,
+    get_segment_intersection,
     _get_ray_xsect_times,  # type: ignore
     vmul,
     vdiv,
@@ -20,7 +20,7 @@ from vec2_math import (
     set_norm,
     _seg_to_ray,
     rotate_around,
-    get_closest_point_on_line, get_closest_point_on_seg
+    project_to_line, project_to_segment
 )
 import pytest
 
@@ -242,21 +242,21 @@ class TestGetLineXsect:
         line_a = [(0, 0), (4, 4)]
         line_b = [(2, 0), (2, 4)]
         expected_result = (2, 2)
-        result = get_line_xsect(line_a, line_b)
+        result = get_line_intersection(line_a, line_b)
         assert math.isclose(result[0], expected_result[0])
         assert math.isclose(result[1], expected_result[1])
 
     def test_parallel_lines_raise_value_error(self):
         line_a = [(0, 0), (1, 1)]
         line_b = [(2, 2), (3, 3)]
-        result = get_line_xsect(line_a, line_b)
+        result = get_line_intersection(line_a, line_b)
         assert result is None
 
     def test_same_first_point(self):
         """Identify first point as intersection when a[0] == b[0]"""
         line_a = [(0, 0), (1, 1)]
         line_b = [(0, 0), (3, -3)]
-        result = get_line_xsect(line_a, line_b)
+        result = get_line_intersection(line_a, line_b)
         assert math.isclose(result[0], line_a[0][0])
         assert math.isclose(result[1], line_a[0][1])
 
@@ -264,7 +264,7 @@ class TestGetLineXsect:
         """Identify first point as intersection when a[1] == b[1]"""
         line_a = [(1, 1), (0, 0)]
         line_b = [(3, -3), (0, 0)]
-        result = get_line_xsect(line_a, line_b)
+        result = get_line_intersection(line_a, line_b)
 
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
@@ -273,7 +273,7 @@ class TestGetLineXsect:
         """Identify shared point as intersection when a[1] == b[0]"""
         line_a = [(1, 1), (0, 0)]
         line_b = [(0, 0), (3, -3)]
-        result = get_line_xsect(line_a, line_b)
+        result = get_line_intersection(line_a, line_b)
 
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
@@ -284,7 +284,7 @@ class TestGetSegXsect:
         line_a = [(0, 0), (4, 4)]
         line_b = [(2, 0), (2, 4)]
         expected_result = (2, 2)
-        result = get_seg_xsect(line_a, line_b)
+        result = get_segment_intersection(line_a, line_b)
         assert math.isclose(result[0], expected_result[0])
         assert math.isclose(result[1], expected_result[1])
 
@@ -292,7 +292,7 @@ class TestGetSegXsect:
         """Identify an intersection at a t-junction"""
         seg_a = [(0, 0), (2, 0)]
         seg_b = [(1, 0), (1, 2)]
-        result = get_seg_xsect(seg_a, seg_b)
+        result = get_segment_intersection(seg_a, seg_b)
         assert math.isclose(result[0], 1)
         assert math.isclose(result[1], 0)
 
@@ -300,41 +300,41 @@ class TestGetSegXsect:
         """Do not identify an intersection when seg_a would cross seg_b at t < 0."""
         seg_a = [(0, 0), (2, 0)]
         seg_b = [(-1, -1), (-1, 2)]
-        result = get_seg_xsect(seg_a, seg_b)
+        result = get_segment_intersection(seg_a, seg_b)
         assert result is None
 
     def test_beyond_a(self):
         """Do not identify an intersection when seg_a would cross seg_b at t > 1."""
         seg_a = [(0, 0), (2, 0)]
         seg_b = [(3, -1), (3, 1)]
-        result = get_seg_xsect(seg_a, seg_b)
+        result = get_segment_intersection(seg_a, seg_b)
         assert result is None
 
     def test_before_b(self):
         """Do not identify an intersection when seg_b would cross seg_a at t < 0."""
         seg_a = [(0, 0), (2, 0)]
         seg_b = [(3, -1), (3, 2)]
-        result = get_seg_xsect(seg_b, seg_a)
+        result = get_segment_intersection(seg_b, seg_a)
         assert result is None
 
     def test_beyond_b(self):
         """Do not identify an intersection when seg_a would cross seg_b at t > 1."""
         seg_a = [(0, 0), (2, 0)]
         seg_b = [(3, -1), (3, 1)]
-        result = get_seg_xsect(seg_b, seg_a)
+        result = get_segment_intersection(seg_b, seg_a)
         assert result is None
 
     def test_parallel_lines_raise_value_error(self):
         line_a = [(0, 0), (1, 1)]
         line_b = [(2, 2), (3, 3)]
-        result = get_seg_xsect(line_a, line_b)
+        result = get_segment_intersection(line_a, line_b)
         assert result is None
 
     def test_same_first_point(self):
         """Identify first point as intersection when a[0] == b[0]"""
         line_a = [(0, 0), (1, 1)]
         line_b = [(0, 0), (3, -3)]
-        result = get_seg_xsect(line_a, line_b)
+        result = get_segment_intersection(line_a, line_b)
         assert math.isclose(result[0], line_a[0][0])
         assert math.isclose(result[1], line_a[0][1])
 
@@ -342,7 +342,7 @@ class TestGetSegXsect:
         """Identify first point as intersection when a[1] == b[1]"""
         line_a = [(1, 1), (0, 0)]
         line_b = [(3, -3), (0, 0)]
-        result = get_seg_xsect(line_a, line_b)
+        result = get_segment_intersection(line_a, line_b)
 
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
@@ -351,7 +351,7 @@ class TestGetSegXsect:
         """Identify shared point as intersection when a[1] == b[0]"""
         line_a = [(1, 1), (0, 0)]
         line_b = [(0, 0), (3, -3)]
-        result = get_seg_xsect(line_a, line_b)
+        result = get_segment_intersection(line_a, line_b)
 
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
@@ -488,89 +488,89 @@ class TestRotateAround:
 
 
 class TestClosesetPointOnLine:
-    def test_get_closest_point_on_line(self):
+    def test_project_to_line(self):
         line = [(0, 0), (1, 1)]
         point = (2, 2)
         expected_result = (2, 2)
-        result = get_closest_point_on_line(line, point)
+        result = project_to_line(line, point)
         assert _isclose_vec(result, expected_result)
 
-    def test_get_closest_point_on_line_same_point(self):
+    def test_project_to_line_same_point(self):
         line = [(0, 0), (1, 1)]
         point = (0, 0)
         expected_result = (0, 0)
-        result = get_closest_point_on_line(line, point)
+        result = project_to_line(line, point)
         assert _isclose_vec(result, expected_result)
 
 
-    def test_get_closest_point_on_line_horizontal_line(self):
+    def test_project_to_line_horizontal_line(self):
         line = [(0, 1), (0, -1)]
         point = (2, 0)
         expected_result = (0, 0)
-        result = get_closest_point_on_line(line, point)
+        result = project_to_line(line, point)
         assert _isclose_vec(result, expected_result)
 
-    def test_get_closest_point_on_line_vertical_line(self):
+    def test_project_to_line_vertical_line(self):
         line = [(1, 0), (-1, 0)]
         point = (0, 2)
         expected_result = (0, 0)
-        result = get_closest_point_on_line(line, point)
+        result = project_to_line(line, point)
         assert _isclose_vec(result, expected_result)
 
     def test_above(self):
         line = [(0, 0), (1, 1)]
         point = (2, 3)
         expected_result = (2.5, 2.5)
-        result = get_closest_point_on_line(line, point)
+        result = project_to_line(line, point)
         assert _isclose_vec(result, expected_result)
 
     def test_below(self):
         line = [(0, 0), (1, 1)]
         point = (2, -3)
         expected_result = (-0.5, -0.5)
-        result = get_closest_point_on_line(line, point)
+        result = project_to_line(line, point)
         assert _isclose_vec(result, expected_result)
 
 class TestClosesetPointOnSeg:
-    def test_get_closest_point_on_seg(self):
+    def test_project_to_segment(self):
         seg = [(0, 0), (1, 1)]
         point = (2, 2)
         expected_result = (1, 1)
-        result = get_closest_point_on_seg(seg, point)
+        result = project_to_segment(seg, point)
         assert _isclose_vec(result, expected_result)
 
-    def test_get_closest_point_on_seg_same_point(self):
+    def test_project_to_segment_same_point(self):
         seg = [(0, 0), (1, 1)]
         point = (0, 0)
         expected_result = (0, 0)
-        result = get_closest_point_on_seg(seg, point)
+        result = project_to_segment(seg, point)
         assert _isclose_vec(result, expected_result)
 
 
-    def test_get_closest_point_on_seg_horizontal_seg(self):
+    def test_project_to_segment_horizontal_seg(self):
         seg = [(0, 1), (0, -1)]
         point = (2, 0)
         expected_result = (0, 0)
-        result = get_closest_point_on_seg(seg, point)
+        result = project_to_segment(seg, point)
         assert _isclose_vec(result, expected_result)
 
-    def test_get_closest_point_on_seg_vertical_seg(self):
+    def test_project_to_segment_vertical_seg(self):
         seg = [(1, 0), (-1, 0)]
         point = (0, 2)
         expected_result = (0, 0)
-        result = get_closest_point_on_seg(seg, point)
+        result = project_to_segment(seg, point)
         assert _isclose_vec(result, expected_result)
 
     def test_above(self):
         seg = [(0, 0), (1, 1)]
         point = (2, 3)
         expected_result = (1, 1)
-        result = get_closest_point_on_seg(seg, point)
+        result = project_to_segment(seg, point)
         assert _isclose_vec(result, expected_result)
 
     def test_below(self):
         seg = [(0, 0), (1, 1)]
         point = (2, -3)
         expected_result = (0, 0)
-        result = get_closest_point_on_seg(seg, point)
+        result = project_to_segment(seg, point)
         assert _isclose_vec(result, expected_result)

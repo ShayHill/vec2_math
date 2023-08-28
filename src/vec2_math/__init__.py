@@ -200,7 +200,9 @@ def _get_ray_xsect_times(
     return det(vec_ab, vec_b) / det_ab, det(vec_ab, vec_a) / det_ab
 
 
-def get_line_xsect(line_a: _TwoVec2, line_b: _TwoVec2) -> tuple[float, float] | None:
+def get_line_intersection(
+    line_a: _TwoVec2, line_b: _TwoVec2
+) -> tuple[float, float] | None:
     """Return the intersection of two lines.
 
     :param line_a: an infinite line defined by two points on that line
@@ -216,7 +218,9 @@ def get_line_xsect(line_a: _TwoVec2, line_b: _TwoVec2) -> tuple[float, float] | 
     return vadd(ray_a[0], vscale(ray_a[1], ta))
 
 
-def get_seg_xsect(seg_a: _TwoVec2, seg_b: _TwoVec2) -> tuple[float, float] | None:
+def get_segment_intersection(
+    seg_a: _TwoVec2, seg_b: _TwoVec2
+) -> tuple[float, float] | None:
     """Return the intersection of two line segments.
 
     :param seg_a: a line segment defined as two points
@@ -312,7 +316,7 @@ def rotate_around(pnt: _Vec2, center: _Vec2, angle: float) -> tuple[float, float
 
 # ==============================================================================
 #
-# Relationships
+# Projection
 #
 # ==============================================================================
 
@@ -322,7 +326,7 @@ class _SegOrLine(enum.Enum):
     LINE = enum.auto()
 
 
-def _get_closest_point_on_seg_or_line(
+def _project_to_segment_or_line(
     seg_or_line: _SegOrLine, seg_or_line_points: _TwoVec2, point: _Vec2
 ) -> tuple[float, float]:
     """Find the closest point on a line or segment to a point.
@@ -347,21 +351,21 @@ def _get_closest_point_on_seg_or_line(
     raise ValueError(msg)
 
 
-def get_closest_point_on_line(line: _TwoVec2, point: _Vec2) -> tuple[float, float]:
+def project_to_line(line: _TwoVec2, point: _Vec2) -> tuple[float, float]:
     """Find the closest point on a line to a point.
 
     :param line: line define by two points
     :param point: point
     :return: closest point on line
     """
-    return _get_closest_point_on_seg_or_line(_SegOrLine.LINE, line, point)
+    return _project_to_segment_or_line(_SegOrLine.LINE, line, point)
 
 
-def get_closest_point_on_seg(seg: _TwoVec2, point: _Vec2) -> tuple[float, float]:
+def project_to_segment(seg: _TwoVec2, point: _Vec2) -> tuple[float, float]:
     """Find the closest point on a line segment to a point.
 
     :param seg: line segment define by two points
     :param point: point
     :return: closest point on the line segment to the point
     """
-    return _get_closest_point_on_seg_or_line(_SegOrLine.SEGMENT, seg, point)
+    return _project_to_segment_or_line(_SegOrLine.SEGMENT, seg, point)
