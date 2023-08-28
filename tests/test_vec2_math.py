@@ -20,9 +20,31 @@ from vec2_math import (
     set_norm,
     _seg_to_ray,
     rotate_around,
+    get_closest_point_on_line, get_closest_point_on_seg
 )
-import math
 import pytest
+
+
+def _isclose_vec(
+    vec_a: tuple[float, float],
+    vec_b: tuple[float, float],
+    rel_tol: float = 1e-09,
+    abs_tol: float = 0.0,
+):
+    """Compare two vectors for equality.
+
+    :param vec_a: first vector
+    :param vec_b: second vector
+    :param rel_tol: relative tolerance
+    :param abs_tol: absolute tolerance
+    :return: True if vectors are equal
+    """
+    if len(vec_a) != len(vec_b):
+        return False
+    return all(
+        math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
+        for a, b in zip(vec_a, vec_b)
+    )
 
 
 class TestGetSignedAngle:
@@ -441,11 +463,11 @@ class TestRotateAround:
         # Arrange
         pnt = (2, 3)
         center = (0, 0)
-        angle = math.pi/2
+        angle = math.pi / 2
         result = rotate_around(pnt, center, angle)
         assert math.isclose(result[0], -3)
         assert math.isclose(result[1], 2)
-    
+
     def test_rotate_around_center(self):
         # Arrange
         pnt = (5, 5)
@@ -454,7 +476,7 @@ class TestRotateAround:
         result = rotate_around(pnt, center, angle)
         assert math.isclose(result[0], 2)
         assert math.isclose(result[1], 2 + 3 * math.sqrt(2))
-    
+
     def test_rotate_around_self(self):
         # Arrange
         pnt = (-4, 1)
@@ -463,3 +485,92 @@ class TestRotateAround:
         result = rotate_around(pnt, center, angle)
         assert math.isclose(result[0], -4)
         assert math.isclose(result[1], 1)
+
+
+class TestClosesetPointOnLine:
+    def test_get_closest_point_on_line(self):
+        line = [(0, 0), (1, 1)]
+        point = (2, 2)
+        expected_result = (2, 2)
+        result = get_closest_point_on_line(line, point)
+        assert _isclose_vec(result, expected_result)
+
+    def test_get_closest_point_on_line_same_point(self):
+        line = [(0, 0), (1, 1)]
+        point = (0, 0)
+        expected_result = (0, 0)
+        result = get_closest_point_on_line(line, point)
+        assert _isclose_vec(result, expected_result)
+
+
+    def test_get_closest_point_on_line_horizontal_line(self):
+        line = [(0, 1), (0, -1)]
+        point = (2, 0)
+        expected_result = (0, 0)
+        result = get_closest_point_on_line(line, point)
+        assert _isclose_vec(result, expected_result)
+
+    def test_get_closest_point_on_line_vertical_line(self):
+        line = [(1, 0), (-1, 0)]
+        point = (0, 2)
+        expected_result = (0, 0)
+        result = get_closest_point_on_line(line, point)
+        assert _isclose_vec(result, expected_result)
+
+    def test_above(self):
+        line = [(0, 0), (1, 1)]
+        point = (2, 3)
+        expected_result = (2.5, 2.5)
+        result = get_closest_point_on_line(line, point)
+        assert _isclose_vec(result, expected_result)
+
+    def test_below(self):
+        line = [(0, 0), (1, 1)]
+        point = (2, -3)
+        expected_result = (-0.5, -0.5)
+        result = get_closest_point_on_line(line, point)
+        assert _isclose_vec(result, expected_result)
+
+class TestClosesetPointOnSeg:
+    def test_get_closest_point_on_seg(self):
+        seg = [(0, 0), (1, 1)]
+        point = (2, 2)
+        expected_result = (1, 1)
+        result = get_closest_point_on_seg(seg, point)
+        assert _isclose_vec(result, expected_result)
+
+    def test_get_closest_point_on_seg_same_point(self):
+        seg = [(0, 0), (1, 1)]
+        point = (0, 0)
+        expected_result = (0, 0)
+        result = get_closest_point_on_seg(seg, point)
+        assert _isclose_vec(result, expected_result)
+
+
+    def test_get_closest_point_on_seg_horizontal_seg(self):
+        seg = [(0, 1), (0, -1)]
+        point = (2, 0)
+        expected_result = (0, 0)
+        result = get_closest_point_on_seg(seg, point)
+        assert _isclose_vec(result, expected_result)
+
+    def test_get_closest_point_on_seg_vertical_seg(self):
+        seg = [(1, 0), (-1, 0)]
+        point = (0, 2)
+        expected_result = (0, 0)
+        result = get_closest_point_on_seg(seg, point)
+        assert _isclose_vec(result, expected_result)
+
+    def test_above(self):
+        seg = [(0, 0), (1, 1)]
+        point = (2, 3)
+        expected_result = (1, 1)
+        result = get_closest_point_on_seg(seg, point)
+        assert _isclose_vec(result, expected_result)
+
+    def test_below(self):
+        seg = [(0, 0), (1, 1)]
+        point = (2, -3)
+        expected_result = (0, 0)
+        result = get_closest_point_on_seg(seg, point)
+        assert _isclose_vec(result, expected_result)

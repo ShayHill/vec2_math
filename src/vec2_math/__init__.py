@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import enum
 import math
 from collections.abc import Iterable
 from typing import Union
@@ -14,6 +15,13 @@ _Vec2 = Union[tuple[float, float], Iterable[float]]
 _TwoVec2 = Union[
     tuple[tuple[float, float], tuple[float, float]], Iterable[Iterable[float]]
 ]
+
+
+# ==============================================================================
+#
+# Angle and base LA
+#
+# ==============================================================================
 
 
 def det(vec_a: _Vec2, vec_b: _Vec2) -> float:
@@ -52,6 +60,13 @@ def get_signed_angle(vec_a: _Vec2, vec_b: _Vec2) -> float:
     return math.atan2(det(vec_a, vec_b), dot(vec_a, vec_b))
 
 
+# ==============================================================================
+#
+# Vector magnitude
+#
+# ==============================================================================
+
+
 def get_norm(vec: _Vec2) -> float:
     """Return Euclidean norm of a 2d vector.
 
@@ -77,6 +92,13 @@ def set_norm(vec: _Vec2, norm: float = 1) -> tuple[float, float]:
         return 0, 0
     scale = norm / input_norm
     return vscale(vec, scale)
+
+
+# ==============================================================================
+#
+# Vector arithmetic
+#
+# ==============================================================================
 
 
 def vscale(vec: _Vec2, scale: float) -> tuple[float, float]:
@@ -134,6 +156,13 @@ def vdiv(vec_a: _Vec2, vec_b: _Vec2) -> tuple[float, float]:
     ax, ay = vec_a
     bx, by = vec_b
     return ax / bx, ay / by
+
+
+# ==============================================================================
+#
+# Vector intersection
+#
+# ==============================================================================
 
 
 def _seg_to_ray(seg: _TwoVec2) -> tuple[tuple[float, float], tuple[float, float]]:
@@ -205,6 +234,13 @@ def get_seg_xsect(seg_a: _TwoVec2, seg_b: _TwoVec2) -> tuple[float, float] | Non
     return vadd(ray_a[0], vscale(ray_a[1], ta))
 
 
+# ==============================================================================
+#
+# Scaled translations
+#
+# ==============================================================================
+
+
 def move_along(pnt: _Vec2, vec: _Vec2, distance: float) -> tuple[float, float]:
     """Move a point along a vector.
 
@@ -227,6 +263,13 @@ def move_toward(pnt: _Vec2, target: _Vec2, distance: float) -> tuple[float, floa
     """
     vec = vsub(target, pnt)
     return move_along(pnt, vec, distance)
+
+
+# ==============================================================================
+#
+# Rotation
+#
+# ==============================================================================
 
 
 def vrotate(vec: _Vec2, angle: float) -> tuple[float, float]:
@@ -265,3 +308,60 @@ def rotate_around(pnt: _Vec2, center: _Vec2, angle: float) -> tuple[float, float
     :return: rotated vector
     """
     return vadd(center, vrotate(vsub(pnt, center), angle))
+
+
+# ==============================================================================
+#
+# Relationships
+#
+# ==============================================================================
+
+
+class _SegOrLine(enum.Enum):
+    SEGMENT = enum.auto()
+    LINE = enum.auto()
+
+
+def _get_closest_point_on_seg_or_line(
+    seg_or_line: _SegOrLine, seg_or_line_points: _TwoVec2, point: _Vec2
+) -> tuple[float, float]:
+    """Find the closest point on a line or segment to a point.
+
+    :param seg_or_line: _SegOrLine.SEGMENT or _SegOrLine.LINE
+    :param seg_or_line_points: points defining the line or segment
+    :param point: point
+    :return: closest point on line or segment
+    :raise ValueError: if seg_or_line is not _SegOrLine.SEGMENT or _SegOrLine.LINE
+    """
+    seg_a, seg_vec = _seg_to_ray(seg_or_line_points)
+    point_vec = vsub(point, seg_a)
+    seg_norm = get_norm(seg_vec)
+    seg_unit = vscale(seg_vec, 1 / seg_norm)
+    proj_norm = dot(point_vec, seg_unit)
+    if seg_or_line == _SegOrLine.LINE:
+        return vadd(seg_a, vscale(seg_unit, proj_norm))
+    if seg_or_line == _SegOrLine.SEGMENT:
+        proj_norm = max(0, min(seg_norm, proj_norm))
+        return vadd(seg_a, vscale(seg_unit, proj_norm))
+    msg = "seg_or_line must be _SegOrLine.SEGMENT or _SegOrLine.LINE"
+    raise ValueError(msg)
+
+
+def get_closest_point_on_line(line: _TwoVec2, point: _Vec2) -> tuple[float, float]:
+    """Find the closest point on a line to a point.
+
+    :param line: line define by two points
+    :param point: point
+    :return: closest point on line
+    """
+    return _get_closest_point_on_seg_or_line(_SegOrLine.LINE, line, point)
+
+
+def get_closest_point_on_seg(seg: _TwoVec2, point: _Vec2) -> tuple[float, float]:
+    """Find the closest point on a line segment to a point.
+
+    :param seg: line segment define by two points
+    :param point: point
+    :return: closest point on the line segment to the point
+    """
+    return _get_closest_point_on_seg_or_line(_SegOrLine.SEGMENT, seg, point)
