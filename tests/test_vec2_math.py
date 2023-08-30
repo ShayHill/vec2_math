@@ -18,9 +18,10 @@ from vec2_math import (
     vdiv,
     get_norm,
     set_norm,
-    _seg_to_ray,
+    _seg_to_ray,  # type: ignore
     rotate_around,
-    project_to_line, project_to_segment
+    project_to_line,
+    project_to_segment,
 )
 import pytest
 
@@ -135,7 +136,7 @@ class TestSetNorm:
         vec = (0, 0)
         norm = 5
         with pytest.raises(ValueError) as excinfo:
-            set_norm(vec, norm)
+            _ = set_norm(vec, norm)
         assert (
             str(excinfo.value)
             == "cannot scale a zero-length vector to a nonzero length"
@@ -175,7 +176,7 @@ class TestSegToRayException:
     def test_seg_to_ray_with_zero_length_segment(self):
         seg = [(2, 3), (2, 3)]
         with pytest.raises(ValueError) as excinfo:
-            _seg_to_ray(seg)
+            _ = _seg_to_ray(seg)
         assert str(excinfo.value) == "points defining segment are coincident"
 
 
@@ -204,36 +205,42 @@ class TestGetRayXsectTimes:
         ray_a = [(0, 0), (4, 0)]
         ray_b = [(-1, -1), (0, 2)]
         result = _get_ray_xsect_times(ray_a, ray_b)
+        assert result is not None
         assert math.isclose(result[0], -0.25)
 
     def test_a_at_p25(self):
         ray_a = [(0, 0), (4, 0)]
         ray_b = [(1, -1), (0, 2)]
         result = _get_ray_xsect_times(ray_a, ray_b)
+        assert result is not None
         assert math.isclose(result[0], 0.25)
 
     def test_a_at_1p25(self):
         ray_a = [(0, 0), (4, 0)]
         ray_b = [(5, -1), (0, 2)]
         result = _get_ray_xsect_times(ray_a, ray_b)
+        assert result is not None
         assert math.isclose(result[0], 1.25)
 
     def test_b_at_negative_p25(self):
         ray_b = [(0, 0), (4, 0)]
         ray_a = [(-1, -1), (0, 2)]
         result = _get_ray_xsect_times(ray_a, ray_b)
+        assert result is not None
         assert math.isclose(result[1], -0.25)
 
     def test_b_at_p25(self):
         ray_b = [(0, 0), (4, 0)]
         ray_a = [(1, -1), (0, 2)]
         result = _get_ray_xsect_times(ray_a, ray_b)
+        assert result is not None
         assert math.isclose(result[1], 0.25)
 
     def test_b_at_1p25(self):
         ray_b = [(0, 0), (4, 0)]
         ray_a = [(5, -1), (0, 2)]
         result = _get_ray_xsect_times(ray_a, ray_b)
+        assert result is not None
         assert math.isclose(result[1], 1.25)
 
 
@@ -243,6 +250,7 @@ class TestGetLineXsect:
         line_b = [(2, 0), (2, 4)]
         expected_result = (2, 2)
         result = get_line_intersection(line_a, line_b)
+        assert result is not None
         assert math.isclose(result[0], expected_result[0])
         assert math.isclose(result[1], expected_result[1])
 
@@ -257,6 +265,7 @@ class TestGetLineXsect:
         line_a = [(0, 0), (1, 1)]
         line_b = [(0, 0), (3, -3)]
         result = get_line_intersection(line_a, line_b)
+        assert result is not None
         assert math.isclose(result[0], line_a[0][0])
         assert math.isclose(result[1], line_a[0][1])
 
@@ -265,7 +274,7 @@ class TestGetLineXsect:
         line_a = [(1, 1), (0, 0)]
         line_b = [(3, -3), (0, 0)]
         result = get_line_intersection(line_a, line_b)
-
+        assert result is not None
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
 
@@ -274,7 +283,7 @@ class TestGetLineXsect:
         line_a = [(1, 1), (0, 0)]
         line_b = [(0, 0), (3, -3)]
         result = get_line_intersection(line_a, line_b)
-
+        assert result is not None
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
 
@@ -285,6 +294,7 @@ class TestGetSegXsect:
         line_b = [(2, 0), (2, 4)]
         expected_result = (2, 2)
         result = get_segment_intersection(line_a, line_b)
+        assert result is not None
         assert math.isclose(result[0], expected_result[0])
         assert math.isclose(result[1], expected_result[1])
 
@@ -293,6 +303,7 @@ class TestGetSegXsect:
         seg_a = [(0, 0), (2, 0)]
         seg_b = [(1, 0), (1, 2)]
         result = get_segment_intersection(seg_a, seg_b)
+        assert result is not None
         assert math.isclose(result[0], 1)
         assert math.isclose(result[1], 0)
 
@@ -335,6 +346,7 @@ class TestGetSegXsect:
         line_a = [(0, 0), (1, 1)]
         line_b = [(0, 0), (3, -3)]
         result = get_segment_intersection(line_a, line_b)
+        assert result is not None
         assert math.isclose(result[0], line_a[0][0])
         assert math.isclose(result[1], line_a[0][1])
 
@@ -343,7 +355,7 @@ class TestGetSegXsect:
         line_a = [(1, 1), (0, 0)]
         line_b = [(3, -3), (0, 0)]
         result = get_segment_intersection(line_a, line_b)
-
+        assert result is not None
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
 
@@ -352,7 +364,7 @@ class TestGetSegXsect:
         line_a = [(1, 1), (0, 0)]
         line_b = [(0, 0), (3, -3)]
         result = get_segment_intersection(line_a, line_b)
-
+        assert result is not None
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
 
@@ -502,7 +514,6 @@ class TestClosesetPointOnLine:
         result = project_to_line(line, point)
         assert _isclose_vec(result, expected_result)
 
-
     def test_project_to_line_horizontal_line(self):
         line = [(0, 1), (0, -1)]
         point = (2, 0)
@@ -531,6 +542,7 @@ class TestClosesetPointOnLine:
         result = project_to_line(line, point)
         assert _isclose_vec(result, expected_result)
 
+
 class TestClosesetPointOnSeg:
     def test_project_to_segment(self):
         seg = [(0, 0), (1, 1)]
@@ -545,7 +557,6 @@ class TestClosesetPointOnSeg:
         expected_result = (0, 0)
         result = project_to_segment(seg, point)
         assert _isclose_vec(result, expected_result)
-
 
     def test_project_to_segment_horizontal_seg(self):
         seg = [(0, 1), (0, -1)]
