@@ -369,3 +369,37 @@ def project_to_segment(seg: _TwoVec2, point: _Vec2) -> tuple[float, float]:
     :return: closest point on the line segment to the point
     """
     return _project_to_segment_or_line(_SegOrLine.SEGMENT, seg, point)
+
+
+# ==============================================================================
+#
+# Linear Equation
+#
+# ==============================================================================
+
+
+def get_standard_form(seg: _TwoVec2) -> tuple[float, float, float]:
+    """Compute ax + by + c = 0 where x**2 + y**2 = 1.
+
+    :param seg: a line segment
+    :return: a, b, c in ax + by + c = 0
+    """
+    ray = _seg_to_ray(seg)
+    unit = (ray[0], move_along(*ray, 1))
+
+    a = unit[0][1] - unit[1][1]
+    b = unit[1][0] - unit[0][0]
+    c = unit[0][0] * unit[1][1] - unit[0][1] * unit[1][0]
+    return a, b, c
+
+
+def get_line_point_distance(line: _TwoVec2, point: _Vec2) -> float:
+    """Get the distance between a point and a line in 2D space.
+
+    :param line: a line described as two points on that line
+    :param point: a point
+    :return: distance between point and line
+    """
+    a, b, c = get_standard_form(line)
+    x, y = point
+    return (x * a + y * b + c) / pow(a**2 + b**2, 1 / 2)

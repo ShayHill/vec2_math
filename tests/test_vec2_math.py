@@ -22,6 +22,8 @@ from vec2_math import (
     rotate_around,
     project_to_line,
     project_to_segment,
+    get_standard_form,
+    get_line_point_distance,
 )
 import pytest
 
@@ -585,3 +587,36 @@ class TestClosesetPointOnSeg:
         expected_result = (0, 0)
         result = project_to_segment(seg, point)
         assert _isclose_vec(result, expected_result)
+
+
+class TestLineEquation:
+    def test_horizontal(self) -> None:
+        """a and b are 0 and 1"""
+        assert get_standard_form(((0, 3), (1, 3))) == (0.0, 1.0, -3.0)
+
+    def test_vertical(self) -> None:
+        """a and b are 1 and 0"""
+        assert get_standard_form(((0, 3), (0, -3))) == (1.0, 0.0, 0.0)
+
+    def test_diagonal(self) -> None:
+        expect = (-0.8944271909999159, 0.4472135954999579, 0.0)
+        result = get_standard_form(((0, 0), (4, 8)))
+        assert all(math.isclose(a, b) for a, b in zip(expect, result))
+
+
+class TestPntLinDist:
+    def test_horiz_above(self) -> None:
+        """dist should be positive above"""
+        assert math.isclose(get_line_point_distance(((0, 0), (1, 0)), (0, 1)), 1)
+
+    def test_horiz_below(self) -> None:
+        """dist should be negative below"""
+        assert math.isclose(get_line_point_distance(((0, 0), (1, 0)), (0, -1)), -1)
+
+    def test_vert_left(self) -> None:
+        """dist should be positive to the left"""
+        assert math.isclose(get_line_point_distance(((0, 0), (0, 1)), (-1, 0)), 1)
+
+    def test_vert_right(self) -> None:
+        """dist should be negative to the right"""
+        assert math.isclose(get_line_point_distance(((0, 0), (0, 1)), (1, 0)), -1)
