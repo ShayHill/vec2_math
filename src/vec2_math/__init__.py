@@ -15,6 +15,7 @@ _Vec2 = Union[tuple[float, float], Iterable[float]]
 _TwoVec2 = Union[
     tuple[tuple[float, float], tuple[float, float]], Iterable[Iterable[float]]
 ]
+_LineABC = Union[tuple[float, float, float], Iterable[float]]
 
 
 # ==============================================================================
@@ -200,24 +201,6 @@ def _get_ray_xsect_times(
     return det(vec_ab, vec_b) / det_ab, det(vec_ab, vec_a) / det_ab
 
 
-def get_line_intersection(
-    line_a: _TwoVec2, line_b: _TwoVec2
-) -> tuple[float, float] | None:
-    """Return the intersection of two lines.
-
-    :param line_a: an infinite line defined by two points on that line
-    :param line_b: an infinite line defined by two points on that line
-    :return: intersection point of the two lines or None if lines are parallel
-    :raise ValueError: if the lines are parallel
-    """
-    ray_a, ray_b = _seg_to_ray(line_a), _seg_to_ray(line_b)
-    t = _get_ray_xsect_times(ray_a, ray_b)
-    if t is None:
-        return None
-    ta, _ = t
-    return vadd(ray_a[0], vscale(ray_a[1], ta))
-
-
 def get_segment_intersection(
     seg_a: _TwoVec2, seg_b: _TwoVec2
 ) -> tuple[float, float] | None:
@@ -351,14 +334,21 @@ def _project_to_segment_or_line(
     raise ValueError(msg)
 
 
-def project_to_line(line: _TwoVec2, point: _Vec2) -> tuple[float, float]:
-    """Find the closest point on a line to a point.
+def project_to_line(line: _LineABC, point: _Vec2) -> tuple[float, float] | None:
+    """Project a point onto a line in standard normal form.
 
-    :param line: line define by two points
+    :param line: a line defined by ax + by + c = 0
     :param point: point
-    :return: closest point on line
+    :return: closest point on the line to the point
     """
-    return _project_to_segment_or_line(_SegOrLine.LINE, line, point)
+    a, b, c = line
+    x, y = point
+    d = a**2 + b**2
+    if d == 0:
+        return None  # Line has zero magnitude
+    x_proj = (b * (b * x - a * y) - a * c) / d
+    y_proj = (a * (-b * x + a * y) - b * c) / d
+    return x_proj, y_proj
 
 
 def project_to_segment(seg: _TwoVec2, point: _Vec2) -> tuple[float, float]:
@@ -384,22 +374,39 @@ def get_standard_form(seg: _TwoVec2) -> tuple[float, float, float]:
     :param seg: a line segment
     :return: a, b, c in ax + by + c = 0
     """
-    ray = _seg_to_ray(seg)
-    unit = (ray[0], move_along(*ray, 1))
-
-    a = unit[0][1] - unit[1][1]
-    b = unit[1][0] - unit[0][0]
-    c = unit[0][0] * unit[1][1] - unit[0][1] * unit[1][0]
+    (a0, b0), (a1, b1) = seg
+    a = b0 - b1
+    b = a1 - a0
+    c = a0 * b1 - a1 * b0
     return a, b, c
 
 
-def get_line_point_distance(line: _TwoVec2, point: _Vec2) -> float:
+def get_line_point_distance(line: _LineABC, point: _Vec2) -> float:
     """Get the distance between a point and a line in 2D space.
 
     :param line: a line described as two points on that line
     :param point: a point
     :return: distance between point and line
     """
-    a, b, c = get_standard_form(line)
+    a, b, c = line
     x, y = point
     return (x * a + y * b + c) / pow(a**2 + b**2, 1 / 2)
+
+
+def get_line_intersection(
+    line_a: _LineABC, line_b: _LineABC
+) -> tuple[float, float] | None:
+    """Return the intersection of two lines.
+
+    :param line_a: a line defined by ax + by + c = 0
+    :param line_b: a line defined by ax + by + c = 0
+    :return: intersection point of the two lines
+    """
+    a1, b1, c1 = line_a
+    a2, b2, c2 = line_b
+    det_ = det((a2, b2), (a1, b1))
+    if math.isclose(det_, 0):
+        return None  # Lines are parallel
+    x = (b2 * c1 - b1 * c2) / det_
+    y = (a1 * c2 - a2 * c1) / det_
+    return x, y

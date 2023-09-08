@@ -27,12 +27,14 @@ from vec2_math import (
 )
 import pytest
 
+import itertools as it
+
 
 def _isclose_vec(
     vec_a: tuple[float, float],
     vec_b: tuple[float, float],
     rel_tol: float = 1e-09,
-    abs_tol: float = 0.0,
+    abs_tol: float = 0,
 ):
     """Compare two vectors for equality.
 
@@ -245,28 +247,37 @@ class TestGetRayXsectTimes:
         assert result is not None
         assert math.isclose(result[1], 1.25)
 
+_line_arg = list[tuple[float, float]]
+_line_args = tuple[_line_arg, ...]
 
 class TestGetLineXsect:
     def test_normal_case(self):
-        line_a = [(0, 0), (4, 4)]
-        line_b = [(2, 0), (2, 4)]
-        expected_result = (2, 2)
-        result = get_line_intersection(line_a, line_b)
-        assert result is not None
-        assert math.isclose(result[0], expected_result[0])
-        assert math.isclose(result[1], expected_result[1])
+        lines_a: _line_args = [(0, 0), (4, 4)], [(4, 4), (0, 0)]
+        lines_b: _line_args = [(2, 0), (2, 4)], [(2, 4), (2, 0)]
+        for line_a, line_b in it.product(lines_a, lines_b):
+            expected_result = (2, 2)
+            result = get_line_intersection(
+                get_standard_form(line_a), get_standard_form(line_b)
+            )
+            assert result is not None
+            assert math.isclose(result[0], expected_result[0])
+            assert math.isclose(result[1], expected_result[1])
 
     def test_parallel_lines_raise_value_error(self):
-        line_a = [(0, 0), (1, 1)]
+        line_a= [(0, 0), (1, 1)]
         line_b = [(2, 2), (3, 3)]
-        result = get_line_intersection(line_a, line_b)
+        result = get_line_intersection(
+            get_standard_form(line_a), get_standard_form(line_b)
+        )
         assert result is None
 
     def test_same_first_point(self):
         """Identify first point as intersection when a[0] == b[0]"""
-        line_a = [(0, 0), (1, 1)]
+        line_a= [(0, 0), (1, 1)]
         line_b = [(0, 0), (3, -3)]
-        result = get_line_intersection(line_a, line_b)
+        result = get_line_intersection(
+            get_standard_form(line_a), get_standard_form(line_b)
+        )
         assert result is not None
         assert math.isclose(result[0], line_a[0][0])
         assert math.isclose(result[1], line_a[0][1])
@@ -275,7 +286,9 @@ class TestGetLineXsect:
         """Identify first point as intersection when a[1] == b[1]"""
         line_a = [(1, 1), (0, 0)]
         line_b = [(3, -3), (0, 0)]
-        result = get_line_intersection(line_a, line_b)
+        result = get_line_intersection(
+            get_standard_form(line_a), get_standard_form(line_b)
+        )
         assert result is not None
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
@@ -284,7 +297,9 @@ class TestGetLineXsect:
         """Identify shared point as intersection when a[1] == b[0]"""
         line_a = [(1, 1), (0, 0)]
         line_b = [(0, 0), (3, -3)]
-        result = get_line_intersection(line_a, line_b)
+        result = get_line_intersection(
+            get_standard_form(line_a), get_standard_form(line_b)
+        )
         assert result is not None
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
@@ -506,42 +521,48 @@ class TestClosesetPointOnLine:
         line = [(0, 0), (1, 1)]
         point = (2, 2)
         expected_result = (2, 2)
-        result = project_to_line(line, point)
+        result = project_to_line(get_standard_form(line), point)
+        assert result is not None
         assert _isclose_vec(result, expected_result)
 
     def test_project_to_line_same_point(self):
         line = [(0, 0), (1, 1)]
         point = (0, 0)
         expected_result = (0, 0)
-        result = project_to_line(line, point)
+        result = project_to_line(get_standard_form(line), point)
+        assert result is not None
         assert _isclose_vec(result, expected_result)
 
     def test_project_to_line_horizontal_line(self):
         line = [(0, 1), (0, -1)]
         point = (2, 0)
         expected_result = (0, 0)
-        result = project_to_line(line, point)
+        result = project_to_line(get_standard_form(line), point)
+        assert result is not None
         assert _isclose_vec(result, expected_result)
 
     def test_project_to_line_vertical_line(self):
         line = [(1, 0), (-1, 0)]
         point = (0, 2)
         expected_result = (0, 0)
-        result = project_to_line(line, point)
+        result = project_to_line(get_standard_form(line), point)
+        assert result is not None
         assert _isclose_vec(result, expected_result)
 
     def test_above(self):
         line = [(0, 0), (1, 1)]
         point = (2, 3)
         expected_result = (2.5, 2.5)
-        result = project_to_line(line, point)
+        result = project_to_line(get_standard_form(line), point)
+        assert result is not None
         assert _isclose_vec(result, expected_result)
 
     def test_below(self):
         line = [(0, 0), (1, 1)]
         point = (2, -3)
         expected_result = (-0.5, -0.5)
-        result = project_to_line(line, point)
+        result = project_to_line(get_standard_form(line), point)
+        assert result is not None
         assert _isclose_vec(result, expected_result)
 
 
@@ -592,31 +613,37 @@ class TestClosesetPointOnSeg:
 class TestLineEquation:
     def test_horizontal(self) -> None:
         """a and b are 0 and 1"""
-        assert get_standard_form(((0, 3), (1, 3))) == (0.0, 1.0, -3.0)
+        assert get_standard_form(((0, 3), (1, 3))) == (0, 1, -3)
 
     def test_vertical(self) -> None:
         """a and b are 1 and 0"""
-        assert get_standard_form(((0, 3), (0, -3))) == (1.0, 0.0, 0.0)
+        assert get_standard_form(((0, 3), (0, -3))) == (6, 0, 0)
 
     def test_diagonal(self) -> None:
-        expect = (-0.8944271909999159, 0.4472135954999579, 0.0)
-        result = get_standard_form(((0, 0), (4, 8)))
-        assert all(math.isclose(a, b) for a, b in zip(expect, result))
+        assert get_standard_form(((0, 0), (4, 8))) == (-8, 4, 0)
 
 
 class TestPntLinDist:
     def test_horiz_above(self) -> None:
         """dist should be positive above"""
-        assert math.isclose(get_line_point_distance(((0, 0), (1, 0)), (0, 1)), 1)
+        assert math.isclose(
+            get_line_point_distance(get_standard_form(((0, 0), (10, 0))), (0, 1)), 1
+        )
 
     def test_horiz_below(self) -> None:
         """dist should be negative below"""
-        assert math.isclose(get_line_point_distance(((0, 0), (1, 0)), (0, -1)), -1)
+        assert math.isclose(
+            get_line_point_distance(get_standard_form(((0, 0), (10, 0))), (0, -1)), -1
+        )
 
     def test_vert_left(self) -> None:
         """dist should be positive to the left"""
-        assert math.isclose(get_line_point_distance(((0, 0), (0, 1)), (-1, 0)), 1)
+        assert math.isclose(
+            get_line_point_distance(get_standard_form(((0, 0), (0, 10))), (-1, 0)), 1
+        )
 
     def test_vert_right(self) -> None:
         """dist should be negative to the right"""
-        assert math.isclose(get_line_point_distance(((0, 0), (0, 1)), (1, 0)), -1)
+        assert math.isclose(
+            get_line_point_distance(get_standard_form(((0, 0), (0, 10))), (1, 0)), -1
+        )
