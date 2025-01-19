@@ -311,25 +311,28 @@ class _SegOrLine(enum.Enum):
 
 def _project_to_segment_or_line(
     seg_or_line: _SegOrLine, seg_or_line_points: _TwoVec2, point: _Vec2
-) -> tuple[float, float]:
+) -> tuple[float, tuple[float, float]]:
     """Find the closest point on a line or segment to a point.
 
     :param seg_or_line: _SegOrLine.SEGMENT or _SegOrLine.LINE
     :param seg_or_line_points: points defining the line or segment
     :param point: point
-    :return: closest point on line or segment
+    :return: projection time, closest point on line or segment
     :raise ValueError: if seg_or_line is not _SegOrLine.SEGMENT or _SegOrLine.LINE
+
+    The projection time is the time along the line or segment at which the closest
+    point lies.
     """
     seg_a, vec_ab = _seg_to_ray(seg_or_line_points)
     vec_ap = vsub(point, seg_a)
     dot_ap_ab = dot(vec_ap, vec_ab)
     dot_ab_ab = dot(vec_ab, vec_ab)
-    proj_scale = dot_ap_ab / dot_ab_ab
+    projection_time = dot_ap_ab / dot_ab_ab
     if seg_or_line == _SegOrLine.LINE:
-        return vadd(seg_a, vscale(vec_ab, proj_scale))
+        return projection_time, vadd(seg_a, vscale(vec_ab, projection_time))
     if seg_or_line == _SegOrLine.SEGMENT:
-        proj_scale = max(0, min(1, proj_scale))
-        return vadd(seg_a, vscale(vec_ab, proj_scale))
+        projection_time = max(0, min(1, projection_time))
+        return projection_time, vadd(seg_a, vscale(vec_ab, projection_time))
     msg = "seg_or_line must be _SegOrLine.SEGMENT or _SegOrLine.LINE"
     raise ValueError(msg)
 
@@ -358,7 +361,7 @@ def project_to_segment(seg: _TwoVec2, point: _Vec2) -> tuple[float, float]:
     :param point: point
     :return: closest point on the line segment to the point
     """
-    return _project_to_segment_or_line(_SegOrLine.SEGMENT, seg, point)
+    return _project_to_segment_or_line(_SegOrLine.SEGMENT, seg, point)[1]
 
 
 # ==============================================================================
@@ -386,11 +389,29 @@ def get_line_point_distance(line: _LineABC, point: _Vec2) -> float:
 
     :param line: a line described as two points on that line
     :param point: a point
-    :return: distance between point and line
+    :return: signed distance between point and line
+
+    Positive distances are on the same side of the line as the normal vector. For
+    (1, 0), positive distance would be toward (0, 1). For (0, 1), positive distance
+    would be toward (-1, 0).
     """
     a, b, c = line
     x, y = point
     return (x * a + y * b + c) / pow(a**2 + b**2, 1 / 2)
+
+
+def get_segment_point_distance(seg: _TwoVec2, point: _Vec2) -> float:
+    """Get the signed distance between a point and the closest point on a line segment.
+
+    :param seg: a line segment
+    :param point: a point
+    :return: signed distance between point and line segment
+    """
+    line_point_distance = get_line_point_distance(get_standard_form(seg), point)
+    seg_time, proj = _project_to_segment_or_line(_SegOrLine.SEGMENT, seg, point)
+    if seg_time in {0, 1}:
+        return math.copysign(get_norm(vsub(point, proj)), line_point_distance)
+    return line_point_distance
 
 
 def get_line_intersection(

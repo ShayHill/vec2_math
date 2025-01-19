@@ -24,6 +24,7 @@ from vec2_math import (
     project_to_segment,
     get_standard_form,
     get_line_point_distance,
+    get_segment_point_distance
 )
 import pytest
 
@@ -622,6 +623,22 @@ class TestLineEquation:
     def test_diagonal(self) -> None:
         assert get_standard_form(((0, 0), (4, 8))) == (-8, 4, 0)
 
+class TestSegLinDist:
+    def test_horiz_below(self) -> None:
+        """dist should be negative below"""
+        assert math.isclose(
+            get_segment_point_distance(((0, 0), (10, 0)), (5, -1)), -1
+        )
+    def test_horiz_below_before(self) -> None:
+        """dist should be negative before. Closest point is seg[0]"""
+        assert math.isclose(
+            get_segment_point_distance(((0, 0), (10, 0)), (-1, -1)), -pow(2, 1/2) 
+        )
+    def test_horiz_below_after(self) -> None:
+        """dist should be negative after. Closest point is seg[1]"""
+        assert math.isclose(
+            get_segment_point_distance(((0, 0), (10, 0)), (11, -1)), -pow(2, 1/2) 
+        )
 
 class TestPntLinDist:
     def test_horiz_above(self) -> None:
