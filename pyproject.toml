@@ -9,20 +9,43 @@ requires-python = ">=3.9"
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest", "pre-commit", "commitizen"]
+dev = ["commitizen", "pre-commit", "pytest", "tox"]
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
+
 
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "0.4.1"
 tag_format = "$version"
 major-version-zero = true
-version_files = [
-    "pyproject.toml:^version"
-]
+version_files = ["pyproject.toml:^version"]
+
+
+[tool.isort]
+profile = "black"
+
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules"
+pythonpath = ["tests"]
+log_cli = 1
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{39,310,311,312,313}
+
+[testenv]
+deps = pytest
+commands = pytest
+"""
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
 
 [tool.pyright]
 include = ["src"]
