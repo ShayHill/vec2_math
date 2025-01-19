@@ -320,16 +320,16 @@ def _project_to_segment_or_line(
     :return: closest point on line or segment
     :raise ValueError: if seg_or_line is not _SegOrLine.SEGMENT or _SegOrLine.LINE
     """
-    seg_a, seg_vec = _seg_to_ray(seg_or_line_points)
-    point_vec = vsub(point, seg_a)
-    seg_norm = get_norm(seg_vec)
-    seg_unit = vscale(seg_vec, 1 / seg_norm)
-    proj_norm = dot(point_vec, seg_unit)
+    seg_a, vec_ab = _seg_to_ray(seg_or_line_points)
+    vec_ap = vsub(point, seg_a)
+    dot_ap_ab = dot(vec_ap, vec_ab)
+    dot_ab_ab = dot(vec_ab, vec_ab)
+    proj_scale = dot_ap_ab / dot_ab_ab
     if seg_or_line == _SegOrLine.LINE:
-        return vadd(seg_a, vscale(seg_unit, proj_norm))
+        return vadd(seg_a, vscale(vec_ab, proj_scale))
     if seg_or_line == _SegOrLine.SEGMENT:
-        proj_norm = max(0, min(seg_norm, proj_norm))
-        return vadd(seg_a, vscale(seg_unit, proj_norm))
+        proj_scale = max(0, min(1, proj_scale))
+        return vadd(seg_a, vscale(vec_ab, proj_scale))
     msg = "seg_or_line must be _SegOrLine.SEGMENT or _SegOrLine.LINE"
     raise ValueError(msg)
 
