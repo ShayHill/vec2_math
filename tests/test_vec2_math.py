@@ -13,7 +13,7 @@ from vec2_math import (
     qrotate,
     get_line_intersection,
     get_segment_intersection,
-    _get_ray_xsect_times,  # type: ignore
+    get_ray_xsect_times,
     vmul,
     vdiv,
     get_norm,
@@ -209,42 +209,42 @@ class TestGetRayXsectTimes:
     def test_a_at_negative_p25(self):
         ray_a = [(0, 0), (4, 0)]
         ray_b = [(-1, -1), (0, 2)]
-        result = _get_ray_xsect_times(ray_a, ray_b)
+        result = get_ray_xsect_times(ray_a, ray_b)
         assert result is not None
         assert math.isclose(result[0], -0.25)
 
     def test_a_at_p25(self):
         ray_a = [(0, 0), (4, 0)]
         ray_b = [(1, -1), (0, 2)]
-        result = _get_ray_xsect_times(ray_a, ray_b)
+        result = get_ray_xsect_times(ray_a, ray_b)
         assert result is not None
         assert math.isclose(result[0], 0.25)
 
     def test_a_at_1p25(self):
         ray_a = [(0, 0), (4, 0)]
         ray_b = [(5, -1), (0, 2)]
-        result = _get_ray_xsect_times(ray_a, ray_b)
+        result = get_ray_xsect_times(ray_a, ray_b)
         assert result is not None
         assert math.isclose(result[0], 1.25)
 
     def test_b_at_negative_p25(self):
         ray_b = [(0, 0), (4, 0)]
         ray_a = [(-1, -1), (0, 2)]
-        result = _get_ray_xsect_times(ray_a, ray_b)
+        result = get_ray_xsect_times(ray_a, ray_b)
         assert result is not None
         assert math.isclose(result[1], -0.25)
 
     def test_b_at_p25(self):
         ray_b = [(0, 0), (4, 0)]
         ray_a = [(1, -1), (0, 2)]
-        result = _get_ray_xsect_times(ray_a, ray_b)
+        result = get_ray_xsect_times(ray_a, ray_b)
         assert result is not None
         assert math.isclose(result[1], 0.25)
 
     def test_b_at_1p25(self):
         ray_b = [(0, 0), (4, 0)]
         ray_a = [(5, -1), (0, 2)]
-        result = _get_ray_xsect_times(ray_a, ray_b)
+        result = get_ray_xsect_times(ray_a, ray_b)
         assert result is not None
         assert math.isclose(result[1], 1.25)
 

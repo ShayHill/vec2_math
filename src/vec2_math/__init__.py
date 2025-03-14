@@ -182,9 +182,7 @@ def _seg_to_ray(seg: _TwoVec2) -> tuple[tuple[float, float], tuple[float, float]
     return (xa, ya), vec
 
 
-def _get_ray_xsect_times(
-    ray_a: _TwoVec2, ray_b: _TwoVec2
-) -> tuple[float, float] | None:
+def get_ray_xsect_times(ray_a: _TwoVec2, ray_b: _TwoVec2) -> tuple[float, float] | None:
     """Return the time along ray_a that ray_b intersects.
 
     :param ray_a: a point and a vector from that point
@@ -212,7 +210,7 @@ def get_segment_intersection(
         None if they do not intersect.
     """
     ray_a, ray_b = _seg_to_ray(seg_a), _seg_to_ray(seg_b)
-    t = _get_ray_xsect_times(ray_a, ray_b)
+    t = get_ray_xsect_times(ray_a, ray_b)
     if t is None:
         return None
     ta, tb = t
