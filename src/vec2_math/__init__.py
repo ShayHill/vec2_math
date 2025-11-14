@@ -9,13 +9,10 @@ from __future__ import annotations
 import enum
 import math
 from collections.abc import Iterable
-from typing import Union
 
-_Vec2 = Union[tuple[float, float], Iterable[float]]
-_TwoVec2 = Union[
-    tuple[tuple[float, float], tuple[float, float]], Iterable[Iterable[float]]
-]
-_LineAbc = Union[tuple[float, float, float], Iterable[float]]
+_Vec2 = tuple[float, float] | Iterable[float]
+_TwoVec2 = tuple[tuple[float, float], tuple[float, float]] | Iterable[Iterable[float]]
+_LineAbc = tuple[float, float, float] | Iterable[float]
 
 
 # ==============================================================================
@@ -45,7 +42,7 @@ def dot(vec_a: _Vec2, vec_b: _Vec2) -> float:
     :param vec_b: 2d vector
     :return: dot product of the vectors
     """
-    return sum(x * y for x, y in zip(vec_a, vec_b))
+    return sum(x * y for x, y in zip(vec_a, vec_b, strict=True))
 
 
 def get_signed_angle(vec_a: _Vec2, vec_b: _Vec2) -> float:

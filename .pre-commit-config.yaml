@@ -46,7 +46,7 @@ repos:
   - id: mypy
     name: mypy
     language: python
-    language_version: python 3.9
+    language_version: python 3.10
     types: [python]
     require_serial: true
     verbose: true
@@ -60,7 +60,7 @@ repos:
   rev: v3.21.1
   hooks:
   - args:
-    - --py39-plus
+    - --py310-plus
     id: pyupgrade
 
 - repo: https://github.com/Lucas-C/pre-commit-hooks
@@ -83,21 +83,8 @@ repos:
     language: system
     types: [python]
     args:
-    - --ignore-patterns=venv
+    - --ignore-patterns=.venv
     - --good-names=i,j,_,f
-    # - --disable=protected-access
-    # - --disable=no-member
-    # - --disable=import-error
-    # - --disable=no-name-in-module
-    # - --disable=redundant-returns-doc # many false positives
-    # - --disable=too-many-arguments
-    # - --disable=too-many-instance-attributes
-    # - --disable=redefined-builtin # sticking with edge.next
-    # - --disable=invalid-name # for _TMeshElem and similar type hints
-    # - --disable=useless-return # conflicts with mypy
-    # - --disable=assignment-from-no-return # prevents overloading Attrib methods to only raise an Exception
-    # - --disable=useless-parent-delegation
-    # - --disable=R0801 # Similar lines in multiple files
     - --load-plugins=pylint.extensions.docparams
     - --accept-no-param-doc=n
     - --accept-no-raise-doc=n
@@ -117,7 +104,7 @@ repos:
     - id: ruff
       exclude: "tests"
       args:
-      - --target-version=py39
+      - --target-version=py310
       - --select=ALL
       - --ignore=COM812,D203,D213,ISC003,FLY,S311
       - --fix
