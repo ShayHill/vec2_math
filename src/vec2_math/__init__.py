@@ -15,7 +15,7 @@ _Vec2 = Union[tuple[float, float], Iterable[float]]
 _TwoVec2 = Union[
     tuple[tuple[float, float], tuple[float, float]], Iterable[Iterable[float]]
 ]
-_LineABC = Union[tuple[float, float, float], Iterable[float]]
+_LineAbc = Union[tuple[float, float, float], Iterable[float]]
 
 
 # ==============================================================================
@@ -335,7 +335,7 @@ def _project_to_segment_or_line(
     raise ValueError(msg)
 
 
-def project_to_line(line: _LineABC, point: _Vec2) -> tuple[float, float] | None:
+def project_to_line(line: _LineAbc, point: _Vec2) -> tuple[float, float] | None:
     """Project a point onto a line in standard normal form.
 
     :param line: a line defined by ax + by + c = 0
@@ -382,7 +382,7 @@ def get_standard_form(seg: _TwoVec2) -> tuple[float, float, float]:
     return a, b, c
 
 
-def get_line_point_distance(line: _LineABC, point: _Vec2) -> float:
+def get_line_point_distance(line: _LineAbc, point: _Vec2) -> float:
     """Get the distance between a point and a line in 2D space.
 
     :param line: a line described as two points on that line
@@ -413,7 +413,7 @@ def get_segment_point_distance(seg: _TwoVec2, point: _Vec2) -> float:
 
 
 def get_line_intersection(
-    line_a: _LineABC, line_b: _LineABC
+    line_a: _LineAbc, line_b: _LineAbc
 ) -> tuple[float, float] | None:
     """Return the intersection of two lines.
 
