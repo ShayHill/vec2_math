@@ -3,15 +3,18 @@
 :author: Shay Hill
 :created: 2023-08-19
 """
+
 import math
 
 from vec2_math import (
     move_toward,
     move_along,
     vrotate,
+    vinterp,
     get_signed_angle,
     qrotate,
     get_line_intersection,
+    get_line_intersection_from_two_segments,
     get_segment_intersection,
     get_ray_xsect_times,
     vmul,
@@ -24,7 +27,7 @@ from vec2_math import (
     project_to_segment,
     get_standard_form,
     get_line_point_distance,
-    get_segment_point_distance
+    get_segment_point_distance,
 )
 import pytest
 
@@ -248,8 +251,10 @@ class TestGetRayXsectTimes:
         assert result is not None
         assert math.isclose(result[1], 1.25)
 
+
 _line_arg = list[tuple[float, float]]
 _line_args = tuple[_line_arg, ...]
+
 
 class TestGetLineXsect:
     def test_normal_case(self):
@@ -265,7 +270,7 @@ class TestGetLineXsect:
             assert math.isclose(result[1], expected_result[1])
 
     def test_parallel_lines_raise_value_error(self):
-        line_a= [(0, 0), (1, 1)]
+        line_a = [(0, 0), (1, 1)]
         line_b = [(2, 2), (3, 3)]
         result = get_line_intersection(
             get_standard_form(line_a), get_standard_form(line_b)
@@ -274,7 +279,7 @@ class TestGetLineXsect:
 
     def test_same_first_point(self):
         """Identify first point as intersection when a[0] == b[0]"""
-        line_a= [(0, 0), (1, 1)]
+        line_a = [(0, 0), (1, 1)]
         line_b = [(0, 0), (3, -3)]
         result = get_line_intersection(
             get_standard_form(line_a), get_standard_form(line_b)
@@ -304,6 +309,15 @@ class TestGetLineXsect:
         assert result is not None
         assert math.isclose(result[0], line_a[1][0])
         assert math.isclose(result[1], line_a[1][1])
+
+    def test_from_two_segments(self):
+        line_a = [(0, 0), (4, 4)]
+        line_b = [(2, 0), (2, 4)]
+        expected_result = (2, 2)
+        result = get_line_intersection_from_two_segments(line_a, line_b)
+        assert result is not None
+        assert math.isclose(result[0], expected_result[0])
+        assert math.isclose(result[1], expected_result[1])
 
 
 class TestGetSegXsect:
@@ -411,6 +425,14 @@ class TestMoveAlong:
         result = move_along(pnt, vec, distance)
         assert math.isclose(result[0], -2)
         assert math.isclose(result[1], -1)
+
+    def test_vinterp(self):
+        pnt_a = (0, 0)
+        pnt_b = (4, 6)
+        t = 0.5
+        result = vinterp(pnt_a, pnt_b, t)
+        assert math.isclose(result[0], 2)
+        assert math.isclose(result[1], 3)
 
 
 class TestMoveToward:
@@ -623,22 +645,24 @@ class TestLineEquation:
     def test_diagonal(self) -> None:
         assert get_standard_form(((0, 0), (4, 8))) == (-8, 4, 0)
 
+
 class TestSegLinDist:
     def test_horiz_below(self) -> None:
         """dist should be negative below"""
-        assert math.isclose(
-            get_segment_point_distance(((0, 0), (10, 0)), (5, -1)), -1
-        )
+        assert math.isclose(get_segment_point_distance(((0, 0), (10, 0)), (5, -1)), -1)
+
     def test_horiz_below_before(self) -> None:
         """dist should be negative before. Closest point is seg[0]"""
         assert math.isclose(
-            get_segment_point_distance(((0, 0), (10, 0)), (-1, -1)), -pow(2, 1/2) 
+            get_segment_point_distance(((0, 0), (10, 0)), (-1, -1)), -pow(2, 1 / 2)
         )
+
     def test_horiz_below_after(self) -> None:
         """dist should be negative after. Closest point is seg[1]"""
         assert math.isclose(
-            get_segment_point_distance(((0, 0), (10, 0)), (11, -1)), -pow(2, 1/2) 
+            get_segment_point_distance(((0, 0), (10, 0)), (11, -1)), -pow(2, 1 / 2)
         )
+
 
 class TestPntLinDist:
     def test_horiz_above(self) -> None:
