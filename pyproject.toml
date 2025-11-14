@@ -1,6 +1,6 @@
 [project]
 name = "vec2-math"
-version = "0.6.0"
+version = "0.7.0"
 description = "basic vector functions in 2D"
 readme = "README.md"
 license = "MIT"
@@ -25,7 +25,7 @@ dev = [
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.6.0"
+version = "0.7.0"
 tag_format = "$version"
 major-version-zero = true
 version_files = ["pyproject.toml:^version"]
