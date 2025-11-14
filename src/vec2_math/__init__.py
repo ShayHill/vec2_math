@@ -247,6 +247,17 @@ def move_toward(pnt: _Vec2, target: _Vec2, distance: float) -> tuple[float, floa
     return move_along(pnt, vec, distance)
 
 
+def vinterp(pnt_a: _Vec2, pnt_b: _Vec2, t: float) -> tuple[float, float]:
+    """Linearly interpolate between two points.
+
+    :param pnt_a: 2d vector
+    :param pnt_b: 2d vector
+    :param t: interpolation time (presumably between 0 and 1)
+    :return: interpolated point
+    """
+    return vadd(vscale(pnt_a, 1 - t), vscale(pnt_b, t))
+
+
 # ==============================================================================
 #
 # Rotation
@@ -416,7 +427,7 @@ def get_line_intersection(
 
     :param line_a: a line defined by ax + by + c = 0
     :param line_b: a line defined by ax + by + c = 0
-    :return: intersection point of the two lines
+    :return: intersection point of the two lines or None if they are parallel
     """
     a1, b1, c1 = line_a
     a2, b2, c2 = line_b
@@ -426,3 +437,17 @@ def get_line_intersection(
     x = (b2 * c1 - b1 * c2) / det_
     y = (a1 * c2 - a2 * c1) / det_
     return x, y
+
+
+def get_line_intersection_from_two_segments(
+    seg_a: _TwoVec2, seg_b: _TwoVec2
+) -> tuple[float, float] | None:
+    """Return the intersection of two lines, each defined by two points on that line.
+
+    :param seg_a: a line segment defined as two points
+    :param seg_b: a line segment defined as two points
+    :return: intersection point of the two lines or None if they are parallel
+    """
+    line_a = get_standard_form(seg_a)
+    line_b = get_standard_form(seg_b)
+    return get_line_intersection(line_a, line_b)
